@@ -1,0 +1,195 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elegance Hub - Luxury Fashion Boutique</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md fixed w-full z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <h1 class="text-2xl font-bold text-gray-900">Elegance Hub</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="#home" class="text-gray-700 hover:text-gray-900">Home</a>
+          <a href="#gallery" class="text-gray-700 hover:text-gray-900">Gallery</a>
+          <a href="#products" class="text-gray-700 hover:text-gray-900">Shop</a>
+          <a href="#about" class="text-gray-700 hover:text-gray-900">About</a>
+          <a href="#contact" class="text-gray-700 hover:text-gray-900">Contact</a>
+          <a href="/admin" class="text-gray-700 hover:text-gray-900">Admin</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="h-screen bg-cover bg-center flex items-center justify-center" style="background-image: url('https://images.unsplash.com/photo-1490481650085-7e7e2c6b32e7?q=80&w=2070&auto=format&fit=crop')">
+    <div class="text-center text-white bg-black bg-opacity-50 p-8 rounded">
+      <h2 class="text-4xl md:text-6xl font-bold mb-4">Explore Elegance Hub</h2>
+      <p class="text-lg md:text-xl mb-6">Timeless luxury for every occasion</p>
+      <a href="#gallery" class="bg-white text-gray-900 px-6 py-3 rounded-full font-semibold hover:bg-gray-200">Discover Our Collection</a>
+    </div>
+  </section>
+
+  <!-- Gallery Section -->
+  <section id="gallery" class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Featured Products</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?q=80&w=2063" alt="Women's Silk Dress" class="w-full h-64 object-cover rounded">
+          <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">Featured</span>
+        </div>
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1598033129183-c4f50c6fb2c1?q=80&w=2070" alt="Men's Tailored Suit" class="w-full h-64 object-cover rounded">
+          <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">Featured</span>
+        </div>
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1608063615781-e2dce9036ae1?q=80&w=2070" alt="Leather Handbag" class="w-full h-64 object-cover rounded">
+          <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">Featured</span>
+        </div>
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=2074" alt="Men's Leather Shoes" class="w-full h-64 object-cover rounded">
+          <span class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">Featured</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section id="products" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-12.">Our Collection</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" id="product-list">
+        <!-- Sample Product 1 -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?q=80&w=2063&auto=format&fit=crop" alt="Women's Silk Dress" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-900">Women's Silk Dress</h3>
+            <p class="text-gray-600">$299.00</p>
+            <p class="text-sm text-gray-500">Elegant silk dress for evening wear.</p>
+            <a href="#" class="mt-4 inline-block bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700">View Details</a>
+          </div>
+        </div>
+        <!-- Sample Product 2 -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1598033129183-c4f50c6fb2c1?q=80&w=2070&auto=format&fit=crop" alt="Men's Tailored Suit" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-900">Men's Tailored Suit</h3>
+            <p class="text-gray-600">$499.00</p>
+            <p class="text-sm text-gray-500">Sharp, tailored suit for formal occasions.</p>
+            <a href="#" class="mt-4 inline-block bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700">View Details</a>
+          </div>
+        </div>
+        <!-- Sample Product 3 -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1608063615781-e2dce9036ae1?q=80&w=2070&auto=format&fit=crop" alt="Leather Handbag" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-900">Leather Handbag</h3>
+            <p class="text-gray-600">$199.00</p>
+            <p class="text-sm text-gray-500">Stylish leather bag for everyday elegance.</p>
+            <a href="#" class="mt-4 inline-block bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700">View Details</a>
+          </div>
+        </div>
+        <!-- Sample Product 4 -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=2074&auto=format&fit=crop" alt="Men's Leather Shoes" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-900">Men's Leather Shoes</h3>
+            <p class="text-gray-600">$249.00</p>
+            <p class="text-sm text-gray-500">Polished leather shoes for any occasion.</p>
+            <a href="#" class="mt-4 inline-block bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700">View Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-8">About Elegance Hub</h2>
+      <p class="text-lg text-gray-600 text-center">Elegance Hub curates high-quality, luxurious clothing and accessories for men and women. Our collections blend trendy and timeless styles, crafted with exceptional attention to detail.</p>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-8">Contact Us</h2>
+      <div class="max-w-lg mx-auto">
+        <div class="space-y-4" data-netlify="true" name="contact">
+          <input type="hidden" name="form-name" value="contact">
+          <div>
+            <label for="name" class="block text-gray-700">Name</label>
+            <input type="text" id="name" name="name" class="w-full p-2 border rounded" required>
+          </div>
+          <div>
+            <label for="email" class="block text-gray-700">Email</label>
+            <input type="email" id="email" name="email" class="w-full p-2 border rounded" required>
+          </div>
+          <div>
+            <label for="message" class="block text-gray-700">Message</label>
+            <textarea id="message" name="message" class="w-full p-2 border rounded" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700">Send Message</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p>© 2025 Elegance Hub. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Back to Top Button -->
+  <a href="#home" class="fixed bottom-4 right-4 bg-gray-900 text-white p-3 rounded-full hover:bg-gray-700">↑ Top</a>
+</body>
+</html>
